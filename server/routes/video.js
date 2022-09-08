@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { Video } = require('../models/Video');
+const { Subscriber } = require('../models/Subscriber');
 
 const { auth } = require('../middleware/auth');
 const multer = require('multer');
@@ -40,7 +41,6 @@ router.post('/uploadfiles', (req, res) => {
 router.post('/uploadVideo', (req, res) => {
   // 비디오 정보들을 저장한다.
   const video = new Video(req.body);
-  console.log(req.body);
   video.save((err, doc) => {
     if (err) return res.json({ success: false, err });
     res.status(200).json({ success: true });
@@ -77,8 +77,6 @@ router.post('/thumbnail', (req, res) => {
 
   // 비디오 정보 가져오기
   ffmpeg.ffprobe(req.body.url, function (err, metadata) {
-    console.log(metadata);
-    console.log(metadata.format.duration);
     fileDuration = metadata.format.duration;
   });
 
@@ -86,8 +84,6 @@ router.post('/thumbnail', (req, res) => {
   ffmpeg(req.body.url)
     .on('filenames', function (filenames) {
       console.log('Will generate ' + filenames.join(', '));
-      console.log(filenames);
-
       filePath = 'uploads/thumbnails/' + filenames[0];
     })
     .on('end', function () {
@@ -104,6 +100,26 @@ router.post('/thumbnail', (req, res) => {
       size: '320x240',
       filename: 'thumbnail-%b.png',
     });
+});
+
+router.post('/getSubscriptionVideos', (req, res) => {
+  // 자신의 이이디를 가지고 구독하는 사람들을 찾는다.
+  Subscriber.find({ userFrom: req.body.userFrom }).exec((err, subscriberInfo) => {
+    if (err) return res.status(400).send(err);
+
+    let subscribedUser = [];
+    subscriberInfo.map((subscriber) => {
+      subscribedUser.push(subscriber.userTo);
+    });
+
+    // 찾은 사람들의 비디오를 가지고 온다.
+    Video.find({ writer: { $in: subscribedUser } })
+      .populate('writer')
+      .exec((err, videos) => {
+        if (err) return res.status(400).send(err);
+        res.status(200).json({ success: true, videos });
+      });
+  });
 });
 
 module.exports = router;

@@ -4,12 +4,14 @@ import Axios from 'axios';
 
 const { Title } = Typography;
 const { Meta } = Card;
-
-function LandingPage() {
+function SubscriptionPage() {
   const [Video, setVideo] = useState([]);
 
   useEffect(() => {
-    Axios.get('/api/video/getVideos').then((response) => {
+    const subscriptionVariables = {
+      userFrom: localStorage.getItem('userId'),
+    };
+    Axios.post('/api/video/getSubscriptionVideos', subscriptionVariables).then((response) => {
       if (response.data.success) {
         setVideo(response.data.videos);
       } else {
@@ -17,6 +19,7 @@ function LandingPage() {
       }
     });
   }, []);
+
   const renderCards = Video.map((video, index) => {
     var minutes = Math.floor(video.duration / 60);
     var seconds = Math.floor(video.duration - minutes * 60);
@@ -52,4 +55,4 @@ function LandingPage() {
   );
 }
 
-export default LandingPage;
+export default SubscriptionPage;
