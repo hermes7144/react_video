@@ -6,12 +6,10 @@ function Subscribe(props) {
   const [Subscribed, setSubscribed] = useState(false);
 
   useEffect(() => {
-    console.log(props.userTo);
     let vairable = { userTo: props.userTo };
 
     Axios.post('/api/subscribe/subscribeNumber', vairable).then((response) => {
       if (response.data.success) {
-        console.log(response.data);
         setSubscribeNumber(response.data.subscriberNumber);
       } else {
         alert('구독자 정보를 가져오는데 실패했습니다.');
@@ -35,7 +33,6 @@ function Subscribe(props) {
       userFrom: props.userFrom,
     };
 
-    console.log(subscribedVariable);
     if (Subscribed) {
       Axios.post('/api/subscribe/unSubscribe', subscribedVariable).then((response) => {
         if (response.data.success) {
